@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>CamperCraft 3D</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    :root {
+      --bg: #f4eee6;
+      --panel: #fffaf3;
+      --accent: #355c52;
+      --accent-soft: #d0b08c;
+      --text-main: #2f2621;
+      --text-soft: #6b5a4d;
+      --border-soft: #e0d4c4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #fdf7ef 0, #f4eee6 40%, #e9dfd0 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app {
+      max-width: 1120px;
+      width: 100%;
+      background: rgba(255, 250, 243, 0.96);
+      border-radius: 18px;
+      box-shadow:
+        0 18px 45px rgba(34, 24, 18, 0.18),
+        0 0 0 1px rgba(255, 255, 255, 0.8);
+      padding: 22px 24px 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+        padding: 18px;
+      }
+    }
+
+    h1 {
+      font-size: 24px;
+      letter-spacing: 0.02em;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h1 span.logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #355c52, #8f5f40);
+      color: #fffaf3;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-soft);
+      margin-bottom: 16px;
+    }
+
+    .left,
+    .right {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border-radius: 14px;
+      border: 1px solid rgba(208, 176, 140, 0.35);
+      padding: 14px 14px 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.7), transparent 55%);
+      opacity: 0.7;
+      pointer-events: none;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 10px;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--text-soft);
+    }
+
+    .panel-sub {
+      font-size: 12px;
+      color: var(--text-soft);
+      opacity: 0.8;
+    }
+
+    canvas {
+      width: 100%;
+      height: 320px;
+      border-radius: 12px;
+      background: radial-gradient(circle at top, #fdf7ef 0, #efe3d2 40%, #e0d4c4 100%);
+      display: block;
+    }
+
+    @media (max-width: 900px) {
+      canvas {
+        height: 260px;
+      }
+    }
+
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px 12px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .controls-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+    }
+
+    .control-label {
+      color: var(--text-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .control-label span.name {
+      font-weight: 500;
+    }
+
+    .control-label span.hint {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .control-inputs {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .control-inputs input[type="number"] {
+      width: 100%;
+      padding: 4px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--border-soft);
+      font-size: 12px;
+      background: #fffdf7;
+      color: var(--text-main);
+    }
+
+    .control-inputs input[type="color"] {
+      width: 26px;
+      height: 22px;
+      padding: 0;
+      border-radius: 6px;
+      border: 1px solid var(--border-soft);
+      background: transparent;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: none;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #355c52, #8f5f40);
+      color: #fffaf3;
+      box-shadow: 0 8px 18px rgba(34, 24, 18, 0.25);
+    }
+
+    .btn-secondary {
+      background: rgba(208, 176, 140, 0.16);
+      color: var(--text-main);
+      border: 1px solid rgba(208, 176, 140, 0.6);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-soft);
+      border: 1px dashed rgba(208, 176, 140, 0.7);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(34, 24, 18, 0.25);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: 0 4px 10px rgba(34, 24, 18, 0.2);
+    }
+
+    .btn span.icon {
+      font-size: 14px;
+    }
+
+    .stats {
+      font-size: 12px;
+      color: var(--text-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .stats strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(208, 176, 140, 0.18);
+      font-size: 11px;
+      color: var(--text-soft);
+      border: 1px solid rgba(208, 176, 140, 0.5);
+    }
+
+    .summary {
+      font-size: 12px;
+      color: var(--text-soft);
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(208, 176, 140, 0.6);
+    }
+
+    .parts-list {
+      list-style: none;
+      font-size: 12px;
+      color: var(--text-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="app fade-in">
+    <div class="left">
+      <header class="fade-in">
+        <h1>
+          <span class="logo">C3</span>
+          CamperCraft 3D
+        </h1>
+        <div class="subtitle">
+          Быстрый эскиз компоновки кемпера: кровать, кухня, шкаф — в масштабе и 3D‑виде.
+        </div>
+      </header>
+
+      <section class="panel fade-in">
+        <div class="panel-header">
+          <div class="panel-title">3D‑эскиз компоновки</div>
+          <div class="panel-sub">Поворот мышью или пальцем, масштаб колесом</div>
+        </div>
+        <canvas id="scene"></canvas>
+
+        <div class="controls-row">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button id="renderBtn" class="btn btn-primary">
+              <span class="icon">⤵</span>
+              Построить эскиз
+            </button>
+        
+            <button id="topViewBtn" class="btn btn-secondary">
+              <span class="icon">⬆</span>
+              Вид сверху
+            </button>
+        
+            <button id="isoViewBtn" class="btn btn-secondary">
+              <span class="icon">◇</span>
+              Изометрия
+            </button>
+        
+            <button id="presetBtn" class="btn btn-ghost">
+              <span class="icon">★</span>
+              Загрузить пример
+            </button>
+          </div>
+        </div>
+        <div class="controls-row">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+
+            <button id="saveBtn" class="btn btn-secondary">
+              <span class="icon">💾</span>
+              Сохранить
+            </button>
+        
+            <button id="loadBtn" class="btn btn-secondary">
+              <span class="icon">⤴</span>
+              Загрузить
+            </button>
+
+            <button id="saveAsBtn" class="btn btn-secondary">
+              <span class="icon">✎</span>
+              Сохранить как...
+            </button>
+
+            <button id="loadFromBtn" class="btn btn-secondary">
+              <span class="icon">☰</span>
+              Загрузить из...
+            </button>
+          </div>
+        </div>
+        <div class="controls-row">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        
+            <button id="exportStdPngBtn" class="btn btn-ghost">
+              <span class="icon">⬇</span>
+              PNG: стандарт
+            </button>
+        
+            <button id="exportCurrentPngBtn" class="btn btn-ghost">
+              <span class="icon">🖼</span>
+              PNG: текущий вид
+            </button>
+
+            <button id="exportIsoPngBtn" class="btn btn-ghost">
+              <span class="icon">◇</span>
+              PNG: изометрия
+            </button>
+          </div>
+        </div>
+      </section>
+
+<section class="panel fade-in">
+  <div class="panel-header">
+    <div class="panel-title">Габариты и модули</div>
+    <div class="panel-sub">Все размеры в миллиметрах</div>
+  </div>
+
+  <div class="controls-grid">
+    <div class="control-group">
+      <div class="control-label">
+        <span class="name">Кузов</span>
+        <span class="hint">Д × Ш × В</span>
+      </div>
+      <div class="control-inputs">
+        <input id="vanLength" type="number" min="1000" max="8000" value="3600" placeholder="Длина">
+        <input id="vanWidth" type="number" min="1500" max="2600" value="1850" placeholder="Ширина">
+        <input id="vanHeight" type="number" min="1500" max="2800" value="1950" placeholder="Высота">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span class="name">Кровать</span>
+        <span class="hint">Д × Ш × В + позиция + поворот</span>
+      </div>
+      <div class="control-inputs">
+        <input id="bedLength" type="number" min="1000" max="2500" value="1800" placeholder="Длина">
+        <input id="bedWidth" type="number" min="600" max="1600" value="1250" placeholder="Ширина">
+        <input id="bedHeight" type="number" min="300" max="800" value="450" placeholder="Высота">
+      </div>
+      <div class="control-inputs">
+        <input id="bedX" type="number" min="0" max="8000" value="1500" placeholder="X">
+        <input id="bedY" type="number" min="0" max="2600" value="380" placeholder="Y">
+        <input id="bedRotation" type="number" min="0" max="270" step="90" value="0" placeholder="Поворот">
+        <input id="bedColor" type="color" value="#8f5f40">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span class="name">Кухня</span>
+        <span class="hint">Д × Ш × В + позиция + поворот</span>
+      </div>
+      <div class="control-inputs">
+        <input id="kLength" type="number" min="600" max="2000" value="1100" placeholder="Длина">
+        <input id="kWidth" type="number" min="300" max="900" value="520" placeholder="Ширина">
+        <input id="kHeight" type="number" min="600" max="1200" value="900" placeholder="Высота">
+      </div>
+      <div class="control-inputs">
+        <input id="kX" type="number" min="0" max="8000" value="120" placeholder="X">
+        <input id="kY" type="number" min="0" max="2600" value="120" placeholder="Y">
+        <input id="kRotation" type="number" min="0" max="270" step="90" value="0" placeholder="Поворот">
+        <input id="kColor" type="color" value="#355c52">
+      </div>
+    </div>
+
+    <div class="control-group">
+      <div class="control-label">
+        <span class="name">Шкаф</span>
+        <span class="hint">Д × Ш × В + позиция + поворот</span>
+      </div>
+      <div class="control-inputs">
+        <input id="cabLength" type="number" min="400" max="1600" value="650" placeholder="Длина">
+        <input id="cabWidth" type="number" min="300" max="900" value="520" placeholder="Ширина">
+        <input id="cabHeight" type="number" min="800" max="2200" value="1550" placeholder="Высота">
+      </div>
+      <div class="control-inputs">
+        <input id="cabX" type="number" min="0" max="8000" value="2760" placeholder="X">
+        <input id="cabY" type="number" min="0" max="2600" value="120" placeholder="Y">
+        <input id="cabRotation" type="number" min="0" max="270" step="90" value="0" placeholder="Поворот">
+        <input id="cabColor" type="color" value="#d0b08c">
+      </div>
+    </div>
+  </div>
+</section>
+    </div>
+
+    <div class="right fade-in">
+      <section class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Сводка проекта</div>
+          <div class="panel-sub">Габариты, площадь и легенда модулей</div>
+        </div>
+
+        <div class="stats">
+          <div id="statVan"><strong>Кемпер:</strong> —</div>
+          <div id="statFree"><strong>Свободная площадь пола:</strong> —</div>
+        </div>
+
+        <div class="legend" id="legend"></div>
+
+        <div class="summary" id="summaryText">
+          Все модули находятся внутри кузова. Можно использовать схему как базовый эскиз.
+        </div>
+      </section>
+
+      <section class="panel fade-in">
+        <div class="panel-header">
+          <div class="panel-title">Список модулей и замечания</div>
+          <div class="panel-sub">Размеры, позиции и пересечения</div>
+        </div>
+        <ul class="parts-list" id="partsList"></ul>
+      </section>
+    </div>
+  </div>
+
+<script>
+  const canvas = document.getElementById('scene');
+  const ctx = canvas.getContext('2d');
+
+  const statVan = document.getElementById('statVan');
+  const statFree = document.getElementById('statFree');
+  const legend = document.getElementById('legend');
+  const partsList = document.getElementById('partsList');
+  const summaryText = document.getElementById('summaryText');
+
+  const inputs = {
+    vanLength: document.getElementById('vanLength'),
+    vanWidth: document.getElementById('vanWidth'),
+    vanHeight: document.getElementById('vanHeight'),
+
+    bedLength: document.getElementById('bedLength'),
+    bedWidth: document.getElementById('bedWidth'),
+    bedHeight: document.getElementById('bedHeight'),
+    bedX: document.getElementById('bedX'),
+    bedY: document.getElementById('bedY'),
+    bedRotation: document.getElementById('bedRotation'),
+    bedColor: document.getElementById('bedColor'),
+
+    kLength: document.getElementById('kLength'),
+    kWidth: document.getElementById('kWidth'),
+    kHeight: document.getElementById('kHeight'),
+    kX: document.getElementById('kX'),
+    kY: document.getElementById('kY'),
+    kRotation: document.getElementById('kRotation'),
+    kColor: document.getElementById('kColor'),
+
+    cabLength: document.getElementById('cabLength'),
+    cabWidth: document.getElementById('cabWidth'),
+    cabHeight: document.getElementById('cabHeight'),
+    cabX: document.getElementById('cabX'),
+    cabY: document.getElementById('cabY'),
+    cabRotation: document.getElementById('cabRotation'),
+    cabColor: document.getElementById('cabColor')
+  };
+
+  const buttons = {
+    render: document.getElementById('renderBtn'),
+    top: document.getElementById('topViewBtn'),
+    iso: document.getElementById('isoViewBtn'),
+    preset: document.getElementById('presetBtn'),
+    save: document.getElementById('saveBtn'),
+    load: document.getElementById('loadBtn'),
+    saveAs: document.getElementById('saveAsBtn'),
+    loadFrom: document.getElementById('loadFromBtn'),
+    exportStd: document.getElementById('exportStdPngBtn'),
+    exportCurrent: document.getElementById('exportCurrentPngBtn'),
+    exportIso: document.getElementById('exportIsoPngBtn')
+  };
+
+  const STORAGE_PREFIX = 'campercraft3d_project__';
+  const STORAGE_INDEX_KEY = 'campercraft3d_projects_index';
+  const STORAGE_LAST_KEY = 'campercraft3d_last_project';
+  const DEFAULT_PROJECT_NAME = 'local_storage';
+  const PROJECT_FILE_EXT = '.camper.json';
+
+  const MIN_SIZE_MM = 200;
+  const HANDLE_SIZE = 10;
+  const HANDLE_HIT_SIZE = 16;
+
+  const camera = {
+    yaw: -0.78,
+    pitch: -0.58,
+    zoom: 0.24,
+    topMode: false
+  };
+
+  const dragState = {
+    rotating: false,
+    movingModule: false,
+    resizingModule: false,
+    moduleId: null,
+    handle: null,
+    offsetX: 0,
+    offsetY: 0,
+    startPointerX: 0,
+    startPointerY: 0,
+    startL: 0,
+    startW: 0,
+    lastX: 0,
+    lastY: 0
+  };
+
+  let selectedModuleId = null;
+  let currentProjectName = DEFAULT_PROJECT_NAME;
+
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.json,.camper.json,application/json';
+  fileInput.style.display = 'none';
+  document.body.appendChild(fileInput);
+
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function snap(v, step = 10) {
+    return Math.round(v / step) * step;
+  }
+
+  function normalizeRotation(angle) {
+    const a = ((Number(angle) || 0) % 360 + 360) % 360;
+    if (a === 90 || a === 180 || a === 270) return a;
+    return 0;
+  }
+
+  function safeName(name) {
+    return String(name || '')
+      .trim()
+      .replace(/\s+/g, '_')
+      .replace(/[^\w\-а-яА-ЯёЁ]/g, '') || DEFAULT_PROJECT_NAME;
+  }
+
+  function getStorageKey(name) {
+    return STORAGE_PREFIX + safeName(name);
+  }
+
+  function getProjectIndex() {
+    try {
+      const raw = localStorage.getItem(STORAGE_INDEX_KEY);
+      const list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function setProjectIndex(list) {
+    localStorage.setItem(STORAGE_INDEX_KEY, JSON.stringify(list));
+  }
+
+  function addProjectToIndex(name) {
+    const safe = safeName(name);
+    const list = getProjectIndex();
+    if (!list.includes(safe)) {
+      list.push(safe);
+      list.sort((a, b) => a.localeCompare(b, 'ru'));
+      setProjectIndex(list);
+    }
+  }
+
+  function setLastProjectName(name) {
+    currentProjectName = safeName(name);
+    localStorage.setItem(STORAGE_LAST_KEY, currentProjectName);
+  }
+
+  function getLastProjectName() {
+    return safeName(localStorage.getItem(STORAGE_LAST_KEY) || DEFAULT_PROJECT_NAME);
+  }
+
+  function getModuleInputs(id) {
+    if (id === 'bed') {
+      return {
+        x: inputs.bedX,
+        y: inputs.bedY,
+        l: inputs.bedLength,
+        w: inputs.bedWidth,
+        h: inputs.bedHeight,
+        rotation: inputs.bedRotation,
+        color: inputs.bedColor
+      };
+    }
+    if (id === 'kitchen') {
+      return {
+        x: inputs.kX,
+        y: inputs.kY,
+        l: inputs.kLength,
+        w: inputs.kWidth,
+        h: inputs.kHeight,
+        rotation: inputs.kRotation,
+        color: inputs.kColor
+      };
+    }
+    if (id === 'cabinet') {
+      return {
+        x: inputs.cabX,
+        y: inputs.cabY,
+        l: inputs.cabLength,
+        w: inputs.cabWidth,
+        h: inputs.cabHeight,
+        rotation: inputs.cabRotation,
+        color: inputs.cabColor
+      };
+    }
+    return null;
+  }
+
+  function getData() {
+    const van = {
+      l: Number(inputs.vanLength.value),
+      w: Number(inputs.vanWidth.value),
+      h: Number(inputs.vanHeight.value)
+    };
+
+    const modules = [
+      {
+        id: 'bed',
+        name: 'Кровать',
+        x: Number(inputs.bedX.value),
+        y: Number(inputs.bedY.value),
+        z: 0,
+        l: Number(inputs.bedLength.value),
+        w: Number(inputs.bedWidth.value),
+        h: Number(inputs.bedHeight.value),
+        rotation: normalizeRotation(inputs.bedRotation.value),
+        color: inputs.bedColor.value
+      },
+      {
+        id: 'kitchen',
+        name: 'Кухня',
+        x: Number(inputs.kX.value),
+        y: Number(inputs.kY.value),
+        z: 0,
+        l: Number(inputs.kLength.value),
+        w: Number(inputs.kWidth.value),
+        h: Number(inputs.kHeight.value),
+        rotation: normalizeRotation(inputs.kRotation.value),
+        color: inputs.kColor.value
+      },
+      {
+        id: 'cabinet',
+        name: 'Шкаф',
+        x: Number(inputs.cabX.value),
+        y: Number(inputs.cabY.value),
+        z: 0,
+        l: Number(inputs.cabLength.value),
+        w: Number(inputs.cabWidth.value),
+        h: Number(inputs.cabHeight.value),
+        rotation: normalizeRotation(inputs.cabRotation.value),
+        color: inputs.cabColor.value
+      }
+    ];
+
+    return { van, modules };
+  }
+
+  function getModuleById(modules, id) {
+    return modules.find(m => m.id === id) || null;
+  }
+
+  function getEffectiveSize(m) {
+    const rotated = normalizeRotation(m.rotation) % 180 !== 0;
+    return {
+      l: rotated ? m.w : m.l,
+      w: rotated ? m.l : m.w,
+      h: m.h
+    };
+  }
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const ratio = window.devicePixelRatio || 1;
+    canvas.width = rect.width * ratio;
+    canvas.height = rect.height * ratio;
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    drawScene();
+  }
+
+  function getViewCenter() {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: rect.width / 2,
+      y: rect.height / 2
+    };
+  }
+
+  function rotatePoint(x, y, z) {
+    const cy = Math.cos(camera.yaw);
+    const sy = Math.sin(camera.yaw);
+    const cp = Math.cos(camera.pitch);
+    const sp = Math.sin(camera.pitch);
+
+    const x1 = x * cy - y * sy;
+    const y1 = x * sy + y * cy;
+    const z1 = z;
+
+    const y2 = y1 * cp - z1 * sp;
+    const z2 = y1 * sp + z1 * cp;
+
+    return { x: x1, y: y2, z: z2 };
+  }
+
+  function projectIso(p) {
+    const rect = canvas.getBoundingClientRect();
+    const center = getViewCenter();
+    const scale = Math.min(rect.width, rect.height) * camera.zoom;
+    return {
+      x: center.x + p.x * scale,
+      y: center.y - p.y * scale,
+      z: p.z
+    };
+  }
+
+  function projectTopPoint(x, y, van) {
+    const rect = canvas.getBoundingClientRect();
+    const center = getViewCenter();
+    const scale = Math.min(rect.width, rect.height) * camera.zoom;
+
+    return {
+      x: center.x + ((x - van.l / 2) / 1000) * scale,
+      y: center.y - ((y - van.w / 2) / 1000) * scale
+    };
+  }
+
+  function screenToTopWorld(clientX, clientY, van) {
+    const rect = canvas.getBoundingClientRect();
+    const localX = clientX - rect.left;
+    const localY = clientY - rect.top;
+    const center = getViewCenter();
+    const scale = Math.min(rect.width, rect.height) * camera.zoom;
+
+    return {
+      x: ((localX - center.x) / scale) * 1000 + van.l / 2,
+      y: ((center.y - localY) / scale) * 1000 + van.w / 2
+    };
+  }
+
+  function normalizePoint(x, y, z, van) {
+    return {
+      x: (x - van.l / 2) / 1000,
+      y: (y - van.w / 2) / 1000,
+      z: (z - van.h / 2) / 1000
+    };
+  }
+
+  function makeBox(x, y, z, l, w, h, color, name) {
+    const pts = [
+      [x, y, z], [x + l, y, z], [x + l, y + w, z], [x, y + w, z],
+      [x, y, z + h], [x + l, y, z + h], [x + l, y + w, z + h], [x, y + w, z + h]
+    ].map(p => ({ x: p[0], y: p[1], z: p[2] }));
+
+    const faces = [
+      { idx: [0, 1, 2, 3], shade: 0.92 },
+      { idx: [4, 5, 6, 7], shade: 1.06 },
+      { idx: [0, 1, 5, 4], shade: 0.84 },
+      { idx: [1, 2, 6, 5], shade: 0.76 },
+      { idx: [2, 3, 7, 6], shade: 0.89 },
+      { idx: [3, 0, 4, 7], shade: 0.72 }
+    ];
+
+    return { pts, faces, color, name };
+  }
+
+  function boxToWorld(box, van) {
+    return {
+      pts: box.pts.map(p => normalizePoint(p.x, p.y, p.z, van)),
+      faces: box.faces,
+      color: box.color,
+      name: box.name
+    };
+  }
+
+  function hexToRgb(hex) {
+    const h = hex.replace('#', '');
+    const n = parseInt(h, 16);
+    return {
+      r: (n >> 16) & 255,
+      g: (n >> 8) & 255,
+      b: n & 255
+    };
+  }
+
+  function shadeColor(hex, factor) {
+    const { r, g, b } = hexToRgb(hex);
+    return `rgb(${clamp(Math.round(r * factor), 0, 255)}, ${clamp(Math.round(g * factor), 0, 255)}, ${clamp(Math.round(b * factor), 0, 255)})`;
+  }
+
+  function drawLine3D(a, b, color, width = 1) {
+    const pa = projectIso(rotatePoint(a.x, a.y, a.z));
+    const pb = projectIso(rotatePoint(b.x, b.y, b.z));
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.lineTo(pb.x, pb.y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+  }
+
+  function drawGridIso(van) {
+    const step = 200;
+    for (let x = 0; x <= van.l; x += step) {
+      drawLine3D(
+        normalizePoint(x, 0, 0, van),
+        normalizePoint(x, van.w, 0, van),
+        'rgba(31,26,23,.08)',
+        1
+      );
+    }
+    for (let y = 0; y <= van.w; y += step) {
+      drawLine3D(
+        normalizePoint(0, y, 0, van),
+        normalizePoint(van.l, y, 0, van),
+        'rgba(31,26,23,.08)',
+        1
+      );
+    }
+  }
+
+  function drawGridTop(van) {
+    const step = 200;
+    ctx.save();
+    for (let x = 0; x <= van.l; x += step) {
+      const a = projectTopPoint(x, 0, van);
+      const b = projectTopPoint(x, van.w, van);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.strokeStyle = 'rgba(31,26,23,.08)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    for (let y = 0; y <= van.w; y += step) {
+      const a = projectTopPoint(0, y, van);
+      const b = projectTopPoint(van.l, y, van);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.strokeStyle = 'rgba(31,26,23,.08)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawBoxIso(box, van, alpha = 1) {
+    const world = boxToWorld(box, van);
+    const transformed = world.pts.map(p => rotatePoint(p.x, p.y, p.z));
+
+    const faceData = world.faces.map(face => {
+      const pts = face.idx.map(i => transformed[i]);
+      const avgZ = pts.reduce((sum, p) => sum + p.z, 0) / pts.length;
+      return { ...face, pts, avgZ };
+    }).sort((a, b) => a.avgZ - b.avgZ);
+
+    faceData.forEach(face => {
+      const screenPts = face.pts.map(projectIso);
+      ctx.beginPath();
+      ctx.moveTo(screenPts[0].x, screenPts[0].y);
+      for (let i = 1; i < screenPts.length; i++) ctx.lineTo(screenPts[i].x, screenPts[i].y);
+      ctx.closePath();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = shadeColor(world.color, face.shade);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(34,28,24,.18)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+  }
+
+  function drawVanWireIso(van) {
+    const box = makeBox(0, 0, 0, van.l, van.w, van.h, '#efe3d2', 'Кемпер');
+    const world = boxToWorld(box, van);
+    const pts = world.pts.map(p => projectIso(rotatePoint(p.x, p.y, p.z)));
+    const edges = [
+      [0, 1], [1, 2], [2, 3], [3, 0],
+      [4, 5], [5, 6], [6, 7], [7, 4],
+      [0, 4], [1, 5], [2, 6], [3, 7]
+    ];
+    edges.forEach(([a, b]) => {
+      ctx.beginPath();
+      ctx.moveTo(pts[a].x, pts[a].y);
+      ctx.lineTo(pts[b].x, pts[b].y);
+      ctx.strokeStyle = 'rgba(31,26,23,.35)';
+      ctx.lineWidth = (a < 4 && b < 4) ? 1.4 : 1.1;
+      ctx.stroke();
+    });
+  }
+
+  function drawVanTop(van) {
+    const p1 = projectTopPoint(0, 0, van);
+    const p2 = projectTopPoint(van.l, 0, van);
+    const p3 = projectTopPoint(van.l, van.w, van);
+    const p4 = projectTopPoint(0, van.w, van);
+
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.lineTo(p3.x, p3.y);
+    ctx.lineTo(p4.x, p4.y);
+    ctx.closePath();
+    ctx.strokeStyle = 'rgba(31,26,23,.35)';
+    ctx.lineWidth = 1.4;
+    ctx.stroke();
+  }
+
+  function getTopBoxRect(m, van) {
+    const size = getEffectiveSize(m);
+    const p1 = projectTopPoint(m.x, m.y, van);
+    const p2 = projectTopPoint(m.x + size.l, m.y + size.w, van);
+    return {
+      x: Math.min(p1.x, p2.x),
+      y: Math.min(p1.y, p2.y),
+      w: Math.abs(p2.x - p1.x),
+      h: Math.abs(p2.y - p1.y)
+    };
+  }
+
+  function getTopHandles(m, van) {
+    const rect = getTopBoxRect(m, van);
+    const cx = rect.x + rect.w / 2;
+    const cy = rect.y + rect.h / 2;
+    return {
+      right: { x: rect.x + rect.w, y: cy },
+      bottom: { x: cx, y: rect.y + rect.h },
+      corner: { x: rect.x + rect.w, y: rect.y + rect.h },
+      rotate: { x: cx, y: rect.y - 22 }
+    };
+  }
+
+  function drawHandleSquare(x, y, size, fill, stroke) {
+    ctx.beginPath();
+    ctx.rect(x - size / 2, y - size / 2, size, size);
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+
+  function drawSelectionOutlineTop(m, van) {
+    const rect = getTopBoxRect(m, van);
+    const handles = getTopHandles(m, van);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(rect.x, rect.y, rect.w, rect.h);
+    ctx.strokeStyle = 'rgba(53,92,82,.95)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    drawHandleSquare(handles.right.x, handles.right.y, HANDLE_SIZE, '#fffaf3', 'rgba(53,92,82,.95)');
+    drawHandleSquare(handles.bottom.x, handles.bottom.y, HANDLE_SIZE, '#fffaf3', 'rgba(53,92,82,.95)');
+    drawHandleSquare(handles.corner.x, handles.corner.y, HANDLE_SIZE, '#fffaf3', 'rgba(53,92,82,.95)');
+
+    ctx.beginPath();
+    ctx.moveTo(rect.x + rect.w / 2, rect.y);
+    ctx.lineTo(handles.rotate.x, handles.rotate.y + 8);
+    ctx.strokeStyle = 'rgba(53,92,82,.65)';
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(handles.rotate.x, handles.rotate.y, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#fffaf3';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(143,95,64,.95)';
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(handles.rotate.x, handles.rotate.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(143,95,64,.95)';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBoxTop(m, van, alpha = 1) {
+    const rect = getTopBoxRect(m, van);
+    const size = getEffectiveSize(m);
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.rect(rect.x, rect.y, rect.w, rect.h);
+    ctx.fillStyle = shadeColor(m.color, 1);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(34,28,24,.18)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(47,38,33,.82)';
+    ctx.font = '12px system-ui';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${m.name} · ${size.l}×${size.w} · ${m.rotation}°`, rect.x + rect.w / 2, rect.y + rect.h / 2);
+    ctx.restore();
+
+    if (selectedModuleId === m.id) {
+      drawSelectionOutlineTop(m, van);
+    }
+  }
+
+  function getWarnings(van, modules) {
+    const warnings = [];
+
+    modules.forEach(m => {
+      const s = getEffectiveSize(m);
+      if (
+        m.x < 0 || m.y < 0 || m.z < 0 ||
+        m.x + s.l > van.l ||
+        m.y + s.w > van.w ||
+        m.z + s.h > van.h
+      ) {
+        warnings.push(`⚠ ${m.name} выходит за пределы кузова`);
+      }
+    });
+
+    for (let i = 0; i < modules.length; i++) {
+      for (let j = i + 1; j < modules.length; j++) {
+        const a = modules[i];
+        const b = modules[j];
+        const as = getEffectiveSize(a);
+        const bs = getEffectiveSize(b);
+
+        const overlap =
+          a.x < b.x + bs.l && a.x + as.l > b.x &&
+          a.y < b.y + bs.w && a.y + as.w > b.y &&
+          a.z < b.z + bs.h && a.z + as.h > b.z;
+
+        if (overlap) warnings.push(`⚠ Пересечение: ${a.name} и ${b.name}`);
+      }
+    }
+
+    return warnings;
+  }
+
+  function updateInfo(van, modules) {
+    statVan.textContent = `Кемпер: ${van.l} × ${van.w} × ${van.h} мм`;
+
+    const totalFloor = van.l * van.w;
+    const occupied = modules.reduce((sum, m) => {
+      const s = getEffectiveSize(m);
+      return sum + s.l * s.w;
+    }, 0);
+    const free = Math.max(0, totalFloor - occupied);
+
+    statFree.textContent = `Свободная площадь пола: ${(free / 1000000).toFixed(2)} м²`;
+
+    legend.innerHTML = '';
+    modules.forEach(m => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${m.color};margin-right:8px;vertical-align:middle;"></span>${m.name}`;
+      legend.appendChild(chip);
+    });
+
+    const warnings = getWarnings(van, modules);
+
+    partsList.innerHTML = '';
+    modules.forEach(m => {
+      const s = getEffectiveSize(m);
+      const li = document.createElement('li');
+      li.textContent = `${m.name}: ${s.l} × ${s.w} × ${m.h} мм, позиция ${m.x}/${m.y}, поворот ${m.rotation}°`;
+      partsList.appendChild(li);
+    });
+
+    warnings.forEach(w => {
+      const li = document.createElement('li');
+      li.textContent = w;
+      li.style.color = '#9f3f2d';
+      li.style.fontWeight = '800';
+      partsList.appendChild(li);
+    });
+
+    summaryText.textContent = warnings.length
+      ? 'Есть замечания по размещению. Проверьте пересечения и выход за габариты.'
+      : `Проект: ${currentProjectName}. Все модули внутри кузова.`;
+  }
+
+  function drawScene() {
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+
+    const { van, modules } = getData();
+
+    if (camera.topMode) {
+      drawGridTop(van);
+      drawVanTop(van);
+      modules.forEach(m => drawBoxTop(m, van, 0.96));
+    } else {
+      drawGridIso(van);
+      drawVanWireIso(van);
+
+      const sortable = modules.map(m => {
+        const s = getEffectiveSize(m);
+        const center = normalizePoint(m.x + s.l / 2, m.y + s.w / 2, m.z + s.h / 2, van);
+        const depth = rotatePoint(center.x, center.y, center.z).z;
+        return { module: m, depth };
+      }).sort((a, b) => a.depth - b.depth);
+
+      sortable.forEach(item => {
+        const s = getEffectiveSize(item.module);
+        drawBoxIso(
+          makeBox(item.module.x, item.module.y, item.module.z, s.l, s.w, s.h, item.module.color, item.module.name),
+          van,
+          0.96
+        );
+      });
+    }
+
+    updateInfo(van, modules);
+  }
+
+  function hitTestTopModules(clientX, clientY, van, modules) {
+    const rect = canvas.getBoundingClientRect();
+    const px = clientX - rect.left;
+    const py = clientY - rect.top;
+
+    if (selectedModuleId) {
+      const selected = getModuleById(modules, selectedModuleId);
+      if (selected) {
+        const handles = getTopHandles(selected, van);
+        for (const [name, pt] of Object.entries(handles)) {
+          if (
+            px >= pt.x - HANDLE_HIT_SIZE / 2 &&
+            px <= pt.x + HANDLE_HIT_SIZE / 2 &&
+            py >= pt.y - HANDLE_HIT_SIZE / 2 &&
+            py <= pt.y + HANDLE_HIT_SIZE / 2
+          ) {
+            return { type: name === 'rotate' ? 'rotate' : 'handle', module: selected, handle: name };
+          }
+        }
+      }
+    }
+
+    for (let i = modules.length - 1; i >= 0; i--) {
+      const m = modules[i];
+      const r = getTopBoxRect(m, van);
+      if (px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) {
+        return { type: 'body', module: m };
+      }
+    }
+
+    return null;
+  }
+
+  function updateModulePosition(moduleId, x, y, van) {
+    const { modules } = getData();
+    const m = getModuleById(modules, moduleId);
+    const refs = getModuleInputs(moduleId);
+    if (!m || !refs) return;
+
+    const size = getEffectiveSize(m);
+    refs.x.value = clamp(snap(x), 0, Math.max(0, van.l - size.l));
+    refs.y.value = clamp(snap(y), 0, Math.max(0, van.w - size.w));
+  }
+
+  function updateModuleSize(moduleId, nextL, nextW, van) {
+    const refs = getModuleInputs(moduleId);
+    const { modules } = getData();
+    const m = getModuleById(modules, moduleId);
+    if (!refs || !m) return;
+
+    const minL = Math.max(MIN_SIZE_MM, Number(refs.l.min) || MIN_SIZE_MM);
+    const minW = Math.max(MIN_SIZE_MM, Number(refs.w.min) || MIN_SIZE_MM);
+    const maxL = Number(refs.l.max) || 100000;
+    const maxW = Number(refs.w.max) || 100000;
+
+    let l = clamp(snap(nextL), minL, maxL);
+    let w = clamp(snap(nextW), minW, maxW);
+
+    const rot = normalizeRotation(m.rotation);
+    if (rot % 180 === 0) {
+      l = Math.min(l, van.l - m.x);
+      w = Math.min(w, van.w - m.y);
+    } else {
+      l = Math.min(l, van.w - m.y);
+      w = Math.min(w, van.l - m.x);
+    }
+
+    refs.l.value = Math.max(minL, l);
+    refs.w.value = Math.max(minW, w);
+  }
+
+  function beginResize(module, handle, pointer) {
+    dragState.resizingModule = true;
+    dragState.moduleId = module.id;
+    dragState.handle = handle;
+    dragState.startPointerX = pointer.x;
+    dragState.startPointerY = pointer.y;
+    dragState.startL = module.l;
+    dragState.startW = module.w;
+  }
+
+  function processResize(pointer, van) {
+    const { modules } = getData();
+    const m = getModuleById(modules, dragState.moduleId);
+    if (!m) return;
+
+    const dx = pointer.x - dragState.startPointerX;
+    const dy = pointer.y - dragState.startPointerY;
+    const rot = normalizeRotation(m.rotation);
+
+    let nextL = dragState.startL;
+    let nextW = dragState.startW;
+
+    if (rot % 180 === 0) {
+      if (dragState.handle === 'right' || dragState.handle === 'corner') nextL = dragState.startL + dx;
+      if (dragState.handle === 'bottom' || dragState.handle === 'corner') nextW = dragState.startW + dy;
+    } else {
+      if (dragState.handle === 'right' || dragState.handle === 'corner') nextW = dragState.startW + dx;
+      if (dragState.handle === 'bottom' || dragState.handle === 'corner') nextL = dragState.startL + dy;
+    }
+
+    updateModuleSize(m.id, nextL, nextW, van);
+    drawScene();
+  }
+
+  function rotateModule90(moduleId, van) {
+    const { modules } = getData();
+    const m = getModuleById(modules, moduleId);
+    const refs = getModuleInputs(moduleId);
+    if (!m || !refs) return;
+
+    const nextRotation = normalizeRotation(m.rotation + 90);
+    refs.rotation.value = nextRotation;
+
+    const rotatedSize = getEffectiveSize({ ...m, rotation: nextRotation });
+    refs.x.value = clamp(Number(refs.x.value), 0, Math.max(0, van.l - rotatedSize.l));
+    refs.y.value = clamp(Number(refs.y.value), 0, Math.max(0, van.w - rotatedSize.w));
+
+    drawScene();
+  }
+
+  function getProjectState() {
+    const { van, modules } = getData();
+    return {
+      app: 'campercraft3d',
+      version: 1,
+      projectName: currentProjectName,
+      savedAt: new Date().toISOString(),
+      van: { ...van },
+      modules: modules.map(m => ({ ...m })),
+      camera: { ...camera },
+      selectedModuleId
+    };
+  }
+
+  function applyProjectState(state) {
+    if (!state || !state.van || !Array.isArray(state.modules)) {
+      summaryText.textContent = 'Некорректные данные проекта.';
+      return;
+    }
+
+    inputs.vanLength.value = state.van.l ?? 3600;
+    inputs.vanWidth.value = state.van.w ?? 1850;
+    inputs.vanHeight.value = state.van.h ?? 1950;
+
+    const bed = state.modules.find(m => m.id === 'bed');
+    const kitchen = state.modules.find(m => m.id === 'kitchen');
+    const cabinet = state.modules.find(m => m.id === 'cabinet');
+
+    if (bed) {
+      inputs.bedLength.value = bed.l ?? 1800;
+      inputs.bedWidth.value = bed.w ?? 1250;
+      inputs.bedHeight.value = bed.h ?? 450;
+      inputs.bedX.value = bed.x ?? 1500;
+      inputs.bedY.value = bed.y ?? 380;
+      inputs.bedRotation.value = normalizeRotation(bed.rotation ?? 0);
+      inputs.bedColor.value = bed.color ?? '#8f5f40';
+    }
+
+    if (kitchen) {
+      inputs.kLength.value = kitchen.l ?? 1100;
+      inputs.kWidth.value = kitchen.w ?? 520;
+      inputs.kHeight.value = kitchen.h ?? 900;
+      inputs.kX.value = kitchen.x ?? 120;
+      inputs.kY.value = kitchen.y ?? 120;
+      inputs.kRotation.value = normalizeRotation(kitchen.rotation ?? 0);
+      inputs.kColor.value = kitchen.color ?? '#355c52';
+    }
+
+    if (cabinet) {
+      inputs.cabLength.value = cabinet.l ?? 650;
+      inputs.cabWidth.value = cabinet.w ?? 520;
+      inputs.cabHeight.value = cabinet.h ?? 1550;
+      inputs.cabX.value = cabinet.x ?? 2760;
+      inputs.cabY.value = cabinet.y ?? 120;
+      inputs.cabRotation.value = normalizeRotation(cabinet.rotation ?? 0);
+      inputs.cabColor.value = cabinet.color ?? '#d0b08c';
+    }
+
+    camera.yaw = typeof state.camera?.yaw === 'number' ? state.camera.yaw : -0.78;
+    camera.pitch = typeof state.camera?.pitch === 'number' ? state.camera.pitch : -0.58;
+    camera.zoom = typeof state.camera?.zoom === 'number' ? state.camera.zoom : 0.24;
+    camera.topMode = !!state.camera?.topMode;
+
+    selectedModuleId = state.selectedModuleId || null;
+    setLastProjectName(state.projectName || currentProjectName || DEFAULT_PROJECT_NAME);
+
+    drawScene();
+  }
+
+  function saveProjectLocal(name) {
+    const projectName = safeName(name || currentProjectName || DEFAULT_PROJECT_NAME);
+    const state = getProjectState();
+    state.projectName = projectName;
+
+    localStorage.setItem(getStorageKey(projectName), JSON.stringify(state));
+    addProjectToIndex(projectName);
+    setLastProjectName(projectName);
+    summaryText.textContent = `Проект "${projectName}" сохранён в локальном хранилище.`;
+  }
+
+  function loadProjectLocal(name) {
+    const projectName = safeName(name || currentProjectName || DEFAULT_PROJECT_NAME);
+    const raw = localStorage.getItem(getStorageKey(projectName));
+
+    if (!raw) {
+      summaryText.textContent = `Проект "${projectName}" не найден в локальном хранилище.`;
+      return;
+    }
+
+    const state = JSON.parse(raw);
+    applyProjectState(state);
+    summaryText.textContent = `Проект "${projectName}" загружен из локального хранилища.`;
+  }
+
+  function downloadTextFile(filename, text, mime = 'application/json;charset=utf-8') {
+    const blob = new Blob([text], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function saveProjectAsFile() {
+    const suggested = prompt('Имя файла проекта:', `${currentProjectName}${PROJECT_FILE_EXT}`);
+    if (suggested === null) return;
+
+    const base = suggested.trim() || `${currentProjectName}${PROJECT_FILE_EXT}`;
+    const filename = base.endsWith('.json') ? base : `${base}${PROJECT_FILE_EXT}`;
+
+    const state = getProjectState();
+    const cleanProjectName = safeName(filename.replace(/\.camper\.json$|\.json$/i, ''));
+    state.projectName = cleanProjectName;
+
+    const json = JSON.stringify(state, null, 2);
+    downloadTextFile(filename, json);
+    setLastProjectName(cleanProjectName);
+    addProjectToIndex(cleanProjectName);
+    localStorage.setItem(getStorageKey(cleanProjectName), json);
+    summaryText.textContent = `Проект экспортирован в файл "${filename}".`;
+  }
+
+  function openLocalProjectChooser() {
+    const list = getProjectIndex();
+
+    if (!list.length) {
+      const useFile = confirm('В локальном хранилище нет проектов.\n\nОткрыть файл проекта с диска?');
+      if (useFile) {
+        openProjectFileChooser();
+      }
+      return;
+    }
+
+    const message =
+      `Локальные проекты:\n${list.map((name, i) => `${i + 1}. ${name}`).join('\n')}\n\n` +
+      `Введите номер или имя проекта.\n` +
+      `Оставьте пустым и нажмите OK, чтобы выбрать файл вручную.`;
+
+    const answer = prompt(message, currentProjectName || list[0] || DEFAULT_PROJECT_NAME);
+    if (answer === null) return;
+
+    const trimmed = answer.trim();
+    if (!trimmed) {
+      openProjectFileChooser();
+      return;
+    }
+
+    const byIndex = Number(trimmed);
+    if (Number.isInteger(byIndex) && byIndex >= 1 && byIndex <= list.length) {
+      loadProjectLocal(list[byIndex - 1]);
+      return;
+    }
+
+    loadProjectLocal(trimmed);
+  }
+
+  function openProjectFileChooser() {
+    fileInput.value = '';
+    fileInput.click();
+  }
+
+  function loadProjectFromFile(file) {
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const state = JSON.parse(reader.result);
+        if (!state || !state.van || !Array.isArray(state.modules)) {
+          throw new Error('Некорректный формат файла');
+        }
+
+        const filenameProjectName = safeName(file.name.replace(/\.camper\.json$|\.json$/i, ''));
+        state.projectName = safeName(state.projectName || filenameProjectName || DEFAULT_PROJECT_NAME);
+
+        applyProjectState(state);
+        addProjectToIndex(state.projectName);
+        localStorage.setItem(getStorageKey(state.projectName), JSON.stringify(state));
+        summaryText.textContent = `Проект "${state.projectName}" загружен из файла "${file.name}".`;
+      } catch (err) {
+        console.error(err);
+        summaryText.textContent = 'Не удалось прочитать файл проекта.';
+      }
+    };
+    reader.readAsText(file, 'utf-8');
+  }
+
+  function exportCanvas(filename) {
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  function exportCurrentViewPng(baseName) {
+    exportCanvas(`${safeName(baseName || currentProjectName)}.png`);
+  }
+
+  function exportStandardPng(baseName) {
+    const name = safeName(baseName || currentProjectName);
+
+    const snapshot = {
+      topMode: camera.topMode,
+      yaw: camera.yaw,
+      pitch: camera.pitch,
+      zoom: camera.zoom
+    };
+
+    camera.topMode = true;
+    camera.zoom = 0.30;
+    drawScene();
+    exportCanvas(`${name}_UP.png`);
+
+    camera.topMode = false;
+    camera.yaw = -0.78;
+    camera.pitch = -0.58;
+    camera.zoom = 0.24;
+    drawScene();
+    exportCanvas(`${name}_ISO.png`);
+
+    camera.topMode = snapshot.topMode;
+    camera.yaw = snapshot.yaw;
+    camera.pitch = snapshot.pitch;
+    camera.zoom = snapshot.zoom;
+    drawScene();
+  }
+
+  function exportIsoPng(baseName) {
+    const name = safeName(baseName || currentProjectName);
+
+    const snapshot = {
+      topMode: camera.topMode,
+      yaw: camera.yaw,
+      pitch: camera.pitch,
+      zoom: camera.zoom
+    };
+
+    camera.topMode = false;
+    camera.yaw = -0.78;
+    camera.pitch = -0.58;
+    camera.zoom = 0.24;
+    drawScene();
+    exportCanvas(`${name}_ISO.png`);
+
+    camera.topMode = snapshot.topMode;
+    camera.yaw = snapshot.yaw;
+    camera.pitch = snapshot.pitch;
+    camera.zoom = snapshot.zoom;
+    drawScene();
+  }
+
+  function setTopView() {
+    camera.topMode = true;
+    camera.zoom = 0.30;
+    drawScene();
+  }
+
+  function setIsoView() {
+    camera.topMode = false;
+    camera.yaw = -0.78;
+    camera.pitch = -0.58;
+    camera.zoom = 0.24;
+    drawScene();
+  }
+
+  function applyPreset() {
+    inputs.vanLength.value = 3600;
+    inputs.vanWidth.value = 1850;
+    inputs.vanHeight.value = 1950;
+
+    inputs.bedLength.value = 1800;
+    inputs.bedWidth.value = 1250;
+    inputs.bedHeight.value = 450;
+    inputs.bedX.value = 1500;
+    inputs.bedY.value = 380;
+    inputs.bedRotation.value = 0;
+    inputs.bedColor.value = '#8f5f40';
+
+    inputs.kLength.value = 1100;
+    inputs.kWidth.value = 520;
+    inputs.kHeight.value = 900;
+    inputs.kX.value = 120;
+    inputs.kY.value = 120;
+    inputs.kRotation.value = 0;
+    inputs.kColor.value = '#355c52';
+
+    inputs.cabLength.value = 650;
+    inputs.cabWidth.value = 520;
+    inputs.cabHeight.value = 1550;
+    inputs.cabX.value = 2760;
+    inputs.cabY.value = 120;
+    inputs.cabRotation.value = 0;
+    inputs.cabColor.value = '#d0b08c';
+
+    selectedModuleId = null;
+    setLastProjectName(DEFAULT_PROJECT_NAME);
+    setIsoView();
+  }
+
+  buttons.render?.addEventListener('click', drawScene);
+  buttons.top?.addEventListener('click', setTopView);
+  buttons.iso?.addEventListener('click', setIsoView);
+  buttons.preset?.addEventListener('click', applyPreset);
+
+  buttons.save?.addEventListener('click', () => saveProjectLocal(currentProjectName));
+  buttons.load?.addEventListener('click', () => loadProjectLocal(currentProjectName));
+
+  buttons.saveAs?.addEventListener('click', () => {
+    saveProjectAsFile();
+  });
+
+  buttons.loadFrom?.addEventListener('click', () => {
+    openLocalProjectChooser();
+  });
+
+  buttons.exportStd?.addEventListener('click', () => exportStandardPng(currentProjectName));
+  buttons.exportCurrent?.addEventListener('click', () => exportCurrentViewPng(currentProjectName));
+  buttons.exportIso?.addEventListener('click', () => exportIsoPng(currentProjectName));
+
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) loadProjectFromFile(file);
+  });
+
+  canvas.addEventListener('dblclick', (e) => {
+    if (!camera.topMode) return;
+    const { van, modules } = getData();
+    const hit = hitTestTopModules(e.clientX, e.clientY, van, modules);
+    if (hit?.module) {
+      selectedModuleId = hit.module.id;
+      rotateModule90(hit.module.id, van);
+    }
+  });
+
+  canvas.addEventListener('mousedown', (e) => {
+    const { van, modules } = getData();
+
+    if (camera.topMode) {
+      const hit = hitTestTopModules(e.clientX, e.clientY, van, modules);
+
+      if (hit?.module) {
+        selectedModuleId = hit.module.id;
+
+        if (hit.type === 'rotate') {
+          rotateModule90(hit.module.id, van);
+          return;
+        }
+
+        const pointer = screenToTopWorld(e.clientX, e.clientY, van);
+
+        if (hit.type === 'handle') {
+          beginResize(hit.module, hit.handle, pointer);
+          drawScene();
+          return;
+        }
+
+        if (hit.type === 'body') {
+          dragState.movingModule = true;
+          dragState.moduleId = hit.module.id;
+          dragState.offsetX = pointer.x - hit.module.x;
+          dragState.offsetY = pointer.y - hit.module.y;
+          drawScene();
+          return;
+        }
+      }
+
+      selectedModuleId = null;
+      drawScene();
+      return;
+    }
+
+    dragState.rotating = true;
+    dragState.lastX = e.clientX;
+    dragState.lastY = e.clientY;
+  });
+
+  window.addEventListener('mouseup', () => {
+    dragState.rotating = false;
+    dragState.movingModule = false;
+    dragState.resizingModule = false;
+    dragState.moduleId = null;
+    dragState.handle = null;
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (camera.topMode) {
+      if (dragState.resizingModule && dragState.moduleId) {
+        const { van } = getData();
+        const pointer = screenToTopWorld(e.clientX, e.clientY, van);
+        processResize(pointer, van);
+        return;
+      }
+
+      if (dragState.movingModule && dragState.moduleId) {
+        const { van } = getData();
+        const pointer = screenToTopWorld(e.clientX, e.clientY, van);
+        updateModulePosition(
+          dragState.moduleId,
+          pointer.x - dragState.offsetX,
+          pointer.y - dragState.offsetY,
+          van
+        );
+        drawScene();
+        return;
+      }
+
+      return;
+    }
+
+    if (!dragState.rotating) return;
+    const dx = e.clientX - dragState.lastX;
+    const dy = e.clientY - dragState.lastY;
+    dragState.lastX = e.clientX;
+    dragState.lastY = e.clientY;
+    camera.yaw += dx * 0.01;
+    camera.pitch = clamp(camera.pitch + dy * 0.01, -1.3, 1.3);
+    drawScene();
+  });
+
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    camera.zoom = clamp(camera.zoom + (e.deltaY > 0 ? -0.015 : 0.015), 0.08, 0.5);
+    drawScene();
+  }, { passive: false });
+
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    const { van, modules } = getData();
+
+    if (camera.topMode) {
+      const hit = hitTestTopModules(touch.clientX, touch.clientY, van, modules);
+      if (!hit?.module) return;
+
+      selectedModuleId = hit.module.id;
+
+      if (hit.type === 'rotate') {
+        rotateModule90(hit.module.id, van);
+        return;
+      }
+
+      const pointer = screenToTopWorld(touch.clientX, touch.clientY, van);
+
+      if (hit.type === 'handle') {
+        beginResize(hit.module, hit.handle, pointer);
+        drawScene();
+        return;
+      }
+
+      dragState.movingModule = true;
+      dragState.moduleId = hit.module.id;
+      dragState.offsetX = pointer.x - hit.module.x;
+      dragState.offsetY = pointer.y - hit.module.y;
+      drawScene();
+      return;
+    }
+
+    dragState.rotating = true;
+    dragState.lastX = touch.clientX;
+    dragState.lastY = touch.clientY;
+  }, { passive: true });
+
+  canvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1) return;
+    const touch = e.touches[0];
+
+    if (camera.topMode) {
+      if (dragState.resizingModule && dragState.moduleId) {
+        const { van } = getData();
+        processResize(screenToTopWorld(touch.clientX, touch.clientY, van), van);
+        return;
+      }
+
+      if (dragState.movingModule && dragState.moduleId) {
+        const { van } = getData();
+        const pointer = screenToTopWorld(touch.clientX, touch.clientY, van);
+        updateModulePosition(
+          dragState.moduleId,
+          pointer.x - dragState.offsetX,
+          pointer.y - dragState.offsetY,
+          van
+        );
+        drawScene();
+        return;
+      }
+
+      return;
+    }
+
+    if (!dragState.rotating) return;
+    const dx = touch.clientX - dragState.lastX;
+    const dy = touch.clientY - dragState.lastY;
+    dragState.lastX = touch.clientX;
+    dragState.lastY = touch.clientY;
+    camera.yaw += dx * 0.01;
+    camera.pitch = clamp(camera.pitch + dy * 0.01, -1.3, 1.3);
+    drawScene();
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', () => {
+    dragState.rotating = false;
+    dragState.movingModule = false;
+    dragState.resizingModule = false;
+    dragState.moduleId = null;
+    dragState.handle = null;
+  });
+
+  Object.values(inputs).forEach(input => {
+    input?.addEventListener('input', () => {
+      if (input === inputs.bedRotation) inputs.bedRotation.value = normalizeRotation(inputs.bedRotation.value);
+      if (input === inputs.kRotation) inputs.kRotation.value = normalizeRotation(inputs.kRotation.value);
+      if (input === inputs.cabRotation) inputs.cabRotation.value = normalizeRotation(inputs.cabRotation.value);
+      drawScene();
+    });
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('visible');
+    });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+  window.addEventListener('resize', resizeCanvas);
+
+  (function init() {
+    currentProjectName = getLastProjectName();
+    resizeCanvas();
+
+    const hasLast = localStorage.getItem(getStorageKey(currentProjectName));
+    if (hasLast) {
+      try {
+        loadProjectLocal(currentProjectName);
+      } catch (e) {
+        console.error(e);
+        applyPreset();
+        drawScene();
+      }
+    } else {
+      applyPreset();
+      drawScene();
+    }
+  })();
+</script>
+
+</body>
+</html>
